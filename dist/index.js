@@ -41,6 +41,11 @@ const core = __importStar(__webpack_require__(186));
 function createReviewApproval({ octokit, owner, repo, pullRequest, commitId, }) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            core.debug('calling create review');
+            core.debug(owner);
+            core.debug(repo);
+            core.debug(pullRequest.toString());
+            core.debug(commitId);
             yield octokit.pulls.createReview({
                 owner,
                 repo,

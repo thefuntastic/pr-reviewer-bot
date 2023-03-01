@@ -19,6 +19,12 @@ export async function createReviewApproval({
   commitId,
 }: Params) {
   try {
+    core.debug('calling create review');
+    core.debug(owner);
+    core.debug(repo);
+    core.debug(pullRequest.toString());
+    core.debug(commitId);
+
     await octokit.pulls.createReview({
       owner,
       repo,
