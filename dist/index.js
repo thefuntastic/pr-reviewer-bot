@@ -136,8 +136,7 @@ function deleteOldReviewComments({ octokit, owner, repo, commentBody, pullReques
             repo,
             pull_number: pullRequest,
         });
-        yield Promise.all((existingReviews === null || existingReviews === void 0 ? void 0 : existingReviews.data.filter(review => review.user.login === botNick &&
-            review.body.includes(commentBody)).map((review) => __awaiter(this, void 0, void 0, function* () {
+        yield Promise.all((existingReviews === null || existingReviews === void 0 ? void 0 : existingReviews.data.filter(review => review.user.login === botNick && review.body.includes(commentBody)).map((review) => __awaiter(this, void 0, void 0, function* () {
             return octokit.pulls.deleteReviewComment({
                 owner,
                 repo,
@@ -2940,7 +2939,7 @@ exports.Octokit = Octokit;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var isPlainObject = __webpack_require__(558);
+var isPlainObject = __webpack_require__(3287);
 var universalUserAgent = __webpack_require__(5030);
 
 function lowercaseKeys(object) {
@@ -3326,52 +3325,6 @@ const endpoint = withDefaults(null, DEFAULTS);
 
 exports.endpoint = endpoint;
 //# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
-/***/ 558:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-/*!
- * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-function isObject(o) {
-  return Object.prototype.toString.call(o) === '[object Object]';
-}
-
-function isPlainObject(o) {
-  var ctor,prot;
-
-  if (isObject(o) === false) return false;
-
-  // If has modified constructor
-  ctor = o.constructor;
-  if (ctor === undefined) return true;
-
-  // If has modified prototype
-  prot = ctor.prototype;
-  if (isObject(prot) === false) return false;
-
-  // If constructor does not have an Object-specific method
-  if (prot.hasOwnProperty('isPrototypeOf') === false) {
-    return false;
-  }
-
-  // Most likely a plain Object
-  return true;
-}
-
-exports.isPlainObject = isPlainObject;
 
 
 /***/ }),
@@ -4869,7 +4822,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var endpoint = __webpack_require__(9440);
 var universalUserAgent = __webpack_require__(5030);
-var isPlainObject = __webpack_require__(9062);
+var isPlainObject = __webpack_require__(3287);
 var nodeFetch = _interopDefault(__webpack_require__(467));
 var requestError = __webpack_require__(537);
 
@@ -5009,52 +4962,6 @@ const request = withDefaults(endpoint.endpoint, {
 
 exports.request = request;
 //# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
-/***/ 9062:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-/*!
- * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-function isObject(o) {
-  return Object.prototype.toString.call(o) === '[object Object]';
-}
-
-function isPlainObject(o) {
-  var ctor,prot;
-
-  if (isObject(o) === false) return false;
-
-  // If has modified constructor
-  ctor = o.constructor;
-  if (ctor === undefined) return true;
-
-  // If has modified prototype
-  prot = ctor.prototype;
-  if (isObject(prot) === false) return false;
-
-  // If constructor does not have an Object-specific method
-  if (prot.hasOwnProperty('isPrototypeOf') === false) {
-    return false;
-  }
-
-  // Most likely a plain Object
-  return true;
-}
-
-exports.isPlainObject = isPlainObject;
 
 
 /***/ }),
@@ -5259,6 +5166,52 @@ class Deprecation extends Error {
 }
 
 exports.Deprecation = Deprecation;
+
+
+/***/ }),
+
+/***/ 3287:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+/*!
+ * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
+ *
+ * Copyright (c) 2014-2017, Jon Schlinkert.
+ * Released under the MIT License.
+ */
+
+function isObject(o) {
+  return Object.prototype.toString.call(o) === '[object Object]';
+}
+
+function isPlainObject(o) {
+  var ctor,prot;
+
+  if (isObject(o) === false) return false;
+
+  // If has modified constructor
+  ctor = o.constructor;
+  if (ctor === undefined) return true;
+
+  // If has modified prototype
+  prot = ctor.prototype;
+  if (isObject(prot) === false) return false;
+
+  // If constructor does not have an Object-specific method
+  if (prot.hasOwnProperty('isPrototypeOf') === false) {
+    return false;
+  }
+
+  // Most likely a plain Object
+  return true;
+}
+
+exports.isPlainObject = isPlainObject;
 
 
 /***/ }),
