@@ -206,6 +206,8 @@ function run() {
             return;
         }
         core.debug('Hello world');
+        core.debug(GITHUB_EVENT);
+        core.debug(github.context.toString());
         const commentBody = core.getInput('message') ||
             'Something magical has suggested this change for you';
         const botNick = core.getInput('botNick') || null;
