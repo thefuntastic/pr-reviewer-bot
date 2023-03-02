@@ -25,17 +25,15 @@ export async function createReviewApproval({
     core.debug(pullRequest.toString());
     core.debug(commitId);
 
-    await octokit.pulls.createReview({
+    await octokit.rest.pulls.createReview({
       owner,
       repo,
       pull_number: pullRequest,
       commit_id: commitId,
       event: 'APPROVE',
     });
-  } catch (err) {
-    core.error(
-      `Something went wrong when posting the review: ${err} ${err.stack}`
-    );
+  } catch (err: any) {
+    core.error(`Something went wrong when posting the review: ${err}`);
     throw err;
   }
 }

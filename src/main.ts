@@ -54,8 +54,8 @@ async function run(): Promise<void> {
       pullRequest: github.context.payload.pull_request?.number,
       commitId: GITHUB_EVENT.pull_request?.head.sha,
     });
-  } catch (err) {
-    core.setFailed(err);
+  } catch (err: any) {
+    core.setFailed(`Something went wrong when posting the review: ${err}`);
   }
 
   // // If we have a git diff, then it means that some linter/formatter has changed some files, so

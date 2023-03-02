@@ -19,29 +19,27 @@ export async function deleteOldReviewComments({
   pullRequest,
   botNick,
 }: Params) {
-  if (botNick === null) {
-    return;
-  }
-
-  // Delete existing review comments from this bot
-  const existingReviews = await octokit.pulls.listReviewComments({
-    owner,
-    repo,
-    pull_number: pullRequest,
-  });
-
-  await Promise.all(
-    existingReviews?.data
-      .filter(
-        review =>
-          review.user.login === botNick && review.body.includes(commentBody)
-      )
-      .map(async review =>
-        octokit.pulls.deleteReviewComment({
-          owner,
-          repo,
-          comment_id: review.id,
-        })
-      ) || []
-  );
+  // if (botNick === null) {
+  //   return;
+  // }
+  // // Delete existing review comments from this bot
+  // const existingReviews = await octokit.pulls.listReviewComments({
+  //   owner,
+  //   repo,
+  //   pull_number: pullRequest,
+  // });
+  // await Promise.all(
+  //   existingReviews?.data
+  //     .filter(
+  //       review =>
+  //         review.user.login === botNick && review.body.includes(commentBody)
+  //     )
+  //     .map(async review =>
+  //       octokit.pulls.deleteReviewComment({
+  //         owner,
+  //         repo,
+  //         comment_id: review.id,
+  //       })
+  //     ) || []
+  // );
 }
