@@ -2,7 +2,7 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 3095:
+/***/ 144:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -40,9 +40,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createReviewApproval = void 0;
+exports.approvePR = void 0;
 const core = __importStar(__webpack_require__(2186));
-function createReviewApproval({ octokit, owner, repo, pullRequest, commitId, }) {
+function approvePR({ octokit, owner, repo, pullRequest, commitId, }) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             core.debug('calling create review');
@@ -64,7 +64,7 @@ function createReviewApproval({ octokit, owner, repo, pullRequest, commitId, }) 
         }
     });
 }
-exports.createReviewApproval = createReviewApproval;
+exports.approvePR = approvePR;
 
 
 /***/ }),
@@ -110,11 +110,12 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const github = __importStar(__webpack_require__(5438));
 const core = __importStar(__webpack_require__(2186));
 //import { createReviewCommentsFromPatch } from './createReviewCommentsFromPatch';
-const createReviewApproval_1 = __webpack_require__(3095);
+const approvePR_1 = __webpack_require__(144);
 const { GITHUB_EVENT_PATH } = process.env;
 const { owner, repo } = github.context.repo;
 const token = core.getInput('github-token') || core.getInput('githubToken');
 const octokit = token && github.getOctokit(token);
+const labelName = core.getInput('label-name');
 // @ts-ignore
 const GITHUB_EVENT = require(GITHUB_EVENT_PATH);
 function run() {
@@ -129,15 +130,19 @@ function run() {
             return;
         }
         core.debug(GITHUB_EVENT.action);
-        if (GITHUB_EVENT.action !== 'labeled') {
-            core.debug('Only interested in labels being added or removed');
-            return;
-        }
-        //This is going to need to be a bit more complicated
-        if (GITHUB_EVENT.label.name !== 'bug') {
-            core.debug('Only unrelated labels have changed');
-            return;
-        }
+        // if (GITHUB_EVENT.action !== 'labeled' || GITHUB_EVENT.action !== 'unlabeled') {
+        //   core.debug(`Action only intended for labeled and unlabeled events. Current event ${GITHUB_EVENT.action}`);
+        //   return;
+        // }
+        // //This is going to need to be a bit more complicated
+        // if (GITHUB_EVENT.label.name !== labelName) {
+        //   core.debug('Only unrelated labels have changed');
+        //   return;
+        // }
+        let hasLabel = GITHUB_EVENT.pull_request.labels.includes(function (label) {
+            label.name === labelName;
+        });
+        core.debug(`Has lablel: ${hasLabel} ${labelName}`);
         core.debug('Hello world');
         //core.debug(GITHUB_EVENT);
         core.debug(github.context.toString());
@@ -145,18 +150,23 @@ function run() {
         //   core.getInput('message') ||
         //   'Something magical has suggested this change for you';
         // const botNick = core.getInput('botNick') || null;
-        try {
-            yield (0, createReviewApproval_1.createReviewApproval)({
-                octokit,
-                owner,
-                repo,
-                // @ts-ignore
-                pullRequest: (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number,
-                commitId: (_b = GITHUB_EVENT.pull_request) === null || _b === void 0 ? void 0 : _b.head.sha,
-            });
+        if (hasLabel) {
+            try {
+                yield (0, approvePR_1.approvePR)({
+                    octokit,
+                    owner,
+                    repo,
+                    // @ts-ignore
+                    pullRequest: (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number,
+                    commitId: (_b = GITHUB_EVENT.pull_request) === null || _b === void 0 ? void 0 : _b.head.sha,
+                });
+            }
+            catch (err) {
+                core.setFailed(`Something went wrong when posting the review: ${err}`);
+            }
         }
-        catch (err) {
-            core.setFailed(`Something went wrong when posting the review: ${err}`);
+        else {
+            core.debug('should be removing PR request');
         }
     });
 }

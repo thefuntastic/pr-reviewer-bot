@@ -11,7 +11,7 @@ type Params = {
   commitId: string;
 };
 
-export async function createReviewApproval({
+export async function approvePR({
   octokit,
   owner,
   repo,
