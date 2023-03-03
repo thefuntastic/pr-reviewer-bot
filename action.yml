@@ -13,5 +13,5 @@ inputs:
   botNick:
     description: Github nick name for the bot account, used to remove previous comments
 runs:
-  using: node12
+  using: node16
   main: dist/index.js
