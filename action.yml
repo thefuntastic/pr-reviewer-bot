@@ -1,4 +1,4 @@
-name: action-git-diff-suggestions
+name: autoreview-by-label
 description: Automatically adds a review in the presence of a label
 author: EmbarkStudios
 branding:

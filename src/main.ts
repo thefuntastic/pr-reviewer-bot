@@ -1,8 +1,9 @@
 import * as github from '@actions/github';
 import * as core from '@actions/core';
 
-//import { createReviewCommentsFromPatch } from './createReviewCommentsFromPatch';
 import { approvePR } from './approvePR';
+import { hasLabel } from './checkLabelExists';
+import { GithubLabelEvent, parseGithubLabelEvent } from './types/githubEvent';
 
 const { GITHUB_EVENT_PATH } = process.env;
 const { owner, repo } = github.context.repo;
@@ -18,40 +19,37 @@ async function run(): Promise<void> {
     return;
   }
 
-  if (!github.context.payload.pull_request) {
-    core.debug('Requires a pull request');
+  let parsedEvent: GithubLabelEvent;
+
+  try {
+    parsedEvent = parseGithubLabelEvent(GITHUB_EVENT);
+  } catch (err: any) {
+    core.error(`Could not parse GITHUB_EVENT ${err} ${GITHUB_EVENT}`);
+    core.setFailed(err);
     return;
   }
 
-  core.debug(GITHUB_EVENT.action);
+  const labelName = parsedEvent.label.name;
+  const prNumber = parsedEvent.pull_request.number;
+  const repoName = parsedEvent.repository.name;
+  const repoOwner = parsedEvent.repository.owner.login;
 
-  // if (GITHUB_EVENT.action !== 'labeled' || GITHUB_EVENT.action !== 'unlabeled') {
-  //   core.debug(`Action only intended for labeled and unlabeled events. Current event ${GITHUB_EVENT.action}`);
-  //   return;
-  // }
+  if (parsedEvent.action === "labeled") {
+    core.debug(
+      `PR #${prNumber} in ${repoOwner}/${repoName} has been labeled with "${labelName}".`
+    );
+  } else if (parsedEvent.action === "unlabeled") {
+    core.debug(
+      `PR #${prNumber} in ${repoOwner}/${repoName} has been unlabeled with "${labelName}".`
+    );
+  }
 
-  // //This is going to need to be a bit more complicated
-  // if (GITHUB_EVENT.label.name !== labelName) {
-  //   core.debug('Only unrelated labels have changed');
-  //   return;
-  // }
-
-  let hasLabel = GITHUB_EVENT.pull_request.labels.includes(function (label: any) {
-    label.name === labelName
-  })
-
-  core.debug(`Has lablel: ${hasLabel} ${labelName}`);
-  core.debug('Hello world');
-  //core.debug(GITHUB_EVENT);
-  core.debug(github.context.toString());
-
-  // const commentBody =
-  //   core.getInput('message') ||
-  //   'Something magical has suggested this change for you';
+  const labelExists = hasLabel(labelName, parsedEvent);
+  core.debug(`Has lablel: ${labelExists} ${labelName}`);
 
   // const botNick = core.getInput('botNick') || null;
 
-  if (hasLabel) {
+  if (labelExists) {
     try {
       await approvePR({
         octokit,

@@ -69,6 +69,22 @@ exports.approvePR = approvePR;
 
 /***/ }),
 
+/***/ 6995:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.hasLabel = void 0;
+function hasLabel(labelName, event) {
+    const labelFound = event.pull_request.labels.map((label) => label.name).includes(labelName);
+    return labelFound;
+}
+exports.hasLabel = hasLabel;
+
+
+/***/ }),
+
 /***/ 3109:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
@@ -109,8 +125,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const github = __importStar(__webpack_require__(5438));
 const core = __importStar(__webpack_require__(2186));
-//import { createReviewCommentsFromPatch } from './createReviewCommentsFromPatch';
 const approvePR_1 = __webpack_require__(144);
+const checkLabelExists_1 = __webpack_require__(6995);
+const githubEvent_1 = __webpack_require__(1519);
 const { GITHUB_EVENT_PATH } = process.env;
 const { owner, repo } = github.context.repo;
 const token = core.getInput('github-token') || core.getInput('githubToken');
@@ -125,32 +142,29 @@ function run() {
             core.debug('No octokit client');
             return;
         }
-        if (!github.context.payload.pull_request) {
-            core.debug('Requires a pull request');
+        let parsedEvent;
+        try {
+            parsedEvent = (0, githubEvent_1.parseGithubLabelEvent)(GITHUB_EVENT);
+        }
+        catch (err) {
+            core.error(`Could not parse GITHUB_EVENT ${err} ${GITHUB_EVENT}`);
+            core.setFailed(err);
             return;
         }
-        core.debug(GITHUB_EVENT.action);
-        // if (GITHUB_EVENT.action !== 'labeled' || GITHUB_EVENT.action !== 'unlabeled') {
-        //   core.debug(`Action only intended for labeled and unlabeled events. Current event ${GITHUB_EVENT.action}`);
-        //   return;
-        // }
-        // //This is going to need to be a bit more complicated
-        // if (GITHUB_EVENT.label.name !== labelName) {
-        //   core.debug('Only unrelated labels have changed');
-        //   return;
-        // }
-        let hasLabel = GITHUB_EVENT.pull_request.labels.includes(function (label) {
-            label.name === labelName;
-        });
-        core.debug(`Has lablel: ${hasLabel} ${labelName}`);
-        core.debug('Hello world');
-        //core.debug(GITHUB_EVENT);
-        core.debug(github.context.toString());
-        // const commentBody =
-        //   core.getInput('message') ||
-        //   'Something magical has suggested this change for you';
+        const labelName = parsedEvent.label.name;
+        const prNumber = parsedEvent.pull_request.number;
+        const repoName = parsedEvent.repository.name;
+        const repoOwner = parsedEvent.repository.owner.login;
+        if (parsedEvent.action === "labeled") {
+            core.debug(`PR #${prNumber} in ${repoOwner}/${repoName} has been labeled with "${labelName}".`);
+        }
+        else if (parsedEvent.action === "unlabeled") {
+            core.debug(`PR #${prNumber} in ${repoOwner}/${repoName} has been unlabeled with "${labelName}".`);
+        }
+        const labelExists = (0, checkLabelExists_1.hasLabel)(labelName, parsedEvent);
+        core.debug(`Has lablel: ${labelExists} ${labelName}`);
         // const botNick = core.getInput('botNick') || null;
-        if (hasLabel) {
+        if (labelExists) {
             try {
                 yield (0, approvePR_1.approvePR)({
                     octokit,
@@ -171,6 +185,47 @@ function run() {
     });
 }
 run();
+
+
+/***/ }),
+
+/***/ 1519:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseGithubLabelEvent = void 0;
+function parseGithubLabelEvent(eventPayload) {
+    let parsedEvent;
+    try {
+        parsedEvent = JSON.parse(eventPayload);
+    }
+    catch (error) {
+        throw new Error(`Failed to parse Github event: ${error}`);
+    }
+    if (!isGithubLabelEvent(parsedEvent)) {
+        throw new Error(`Invalid Github event: ${JSON.stringify(parsedEvent)}`);
+    }
+    return parsedEvent;
+}
+exports.parseGithubLabelEvent = parseGithubLabelEvent;
+function isGithubLabelEvent(event) {
+    const labelEvent = event;
+    return (typeof labelEvent.action === 'string' &&
+        typeof labelEvent.label === 'object' &&
+        typeof labelEvent.label.id === 'number' &&
+        typeof labelEvent.label.name === 'string' &&
+        typeof labelEvent.repository === 'object' &&
+        typeof labelEvent.repository.name === 'string' &&
+        typeof labelEvent.repository.owner === 'object' &&
+        typeof labelEvent.repository.owner.login === 'string' &&
+        typeof labelEvent.pull_request === 'object' &&
+        typeof labelEvent.pull_request.number === 'number' &&
+        typeof labelEvent.pull_request.title === 'string' &&
+        typeof labelEvent.pull_request.body === 'string' &&
+        Array.isArray(labelEvent.pull_request.labels));
+}
 
 
 /***/ }),
