@@ -14,6 +14,9 @@ export interface GithubLabelEvent {
         number: number;
         title: string;
         body: string;
+        head: {
+            sha: string;
+        }
         labels: {
             id: number;
             name: string;

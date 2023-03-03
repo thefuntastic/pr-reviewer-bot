@@ -17,6 +17,7 @@ test('Label exists', () => {
             number: 1234,
             title: 'test_pr',
             body: 'pr description',
+            head: { sha: 'ablkjles' },
             labels: [
                 {
                     id: 2345,
@@ -54,6 +55,7 @@ test(`Label doesn't exist`, () => {
             number: 1234,
             title: 'test_pr',
             body: 'pr description',
+            head: { sha: 'ablkjles' },
             labels: [],
         },
     };

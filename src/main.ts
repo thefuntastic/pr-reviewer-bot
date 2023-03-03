@@ -62,8 +62,8 @@ async function run(): Promise<void> {
         owner,
         repo,
         // @ts-ignore
-        pullRequest: github.context.payload.pull_request?.number,
-        commitId: GITHUB_EVENT.pull_request?.head.sha,
+        pullRequest: parsedEvent.pull_request.number,
+        commitId: parsedEvent.pull_request.head.sha,
       });
     } catch (err: any) {
       core.setFailed(`Something went wrong when posting the review: ${err}`);

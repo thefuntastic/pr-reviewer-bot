@@ -122,7 +122,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const promises_1 = __importDefault(__webpack_require__(9225));
 const github = __importStar(__webpack_require__(5438));
 const core = __importStar(__webpack_require__(2186));
 const approvePR_1 = __webpack_require__(144);
@@ -133,21 +137,23 @@ const { owner, repo } = github.context.repo;
 const token = core.getInput('github-token') || core.getInput('githubToken');
 const octokit = token && github.getOctokit(token);
 const labelName = core.getInput('label-name');
-// @ts-ignore
-const GITHUB_EVENT = require(GITHUB_EVENT_PATH);
 function run() {
-    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         if (!octokit) {
             core.debug('No octokit client');
             return;
         }
+        if (!GITHUB_EVENT_PATH) {
+            core.debug('No GITHUB_EVENT_PATH environment vaiable set');
+            return;
+        }
         let parsedEvent;
         try {
-            parsedEvent = (0, githubEvent_1.parseGithubLabelEvent)(GITHUB_EVENT);
+            const eventData = yield promises_1.default.readFile(GITHUB_EVENT_PATH, 'utf-8');
+            parsedEvent = (0, githubEvent_1.parseGithubLabelEvent)(eventData);
         }
         catch (err) {
-            core.error(`Could not parse GITHUB_EVENT ${err} ${GITHUB_EVENT}`);
+            core.error(`Could not parse GITHUB_EVENT ${err} ${GITHUB_EVENT_PATH}`);
             core.setFailed(err);
             return;
         }
@@ -171,8 +177,8 @@ function run() {
                     owner,
                     repo,
                     // @ts-ignore
-                    pullRequest: (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number,
-                    commitId: (_b = GITHUB_EVENT.pull_request) === null || _b === void 0 ? void 0 : _b.head.sha,
+                    pullRequest: parsedEvent.pull_request.number,
+                    commitId: parsedEvent.pull_request.head.sha,
                 });
             }
             catch (err) {
@@ -182,6 +188,15 @@ function run() {
         else {
             core.debug('should be removing PR request');
         }
+        // // If we have a git diff, then it means that some linter/formatter has changed some files, so
+        // // we should fail the build
+        // if (!!gitDiff) {
+        //   core.setFailed(
+        //     new Error(
+        //       'There were some changed files, please update your PR with the code review suggestions'
+        //     )
+        //   );
+        // }
     });
 }
 run();
@@ -9635,6 +9650,14 @@ module.exports = require("events");
 
 "use strict";
 module.exports = require("fs");
+
+/***/ }),
+
+/***/ 9225:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs/promises");
 
 /***/ }),
 
