@@ -15,6 +15,7 @@ const { owner, repo } = github.context.repo;
 const token = core.getInput('github-token') || core.getInput('githubToken');
 const octokit = token && github.getOctokit(token);
 const labelName = core.getInput('label-name');
+const botUsername = core.getInput('bot-username');
 
 
 async function run(): Promise<void> {
@@ -25,6 +26,11 @@ async function run(): Promise<void> {
 
   if (!GITHUB_EVENT_PATH) {
     core.debug('No GITHUB_EVENT_PATH environment vaiable set');
+    return;
+  }
+
+  if (!botUsername) {
+    core.debug('No input defining bot-username found');
     return;
   }
 
@@ -57,9 +63,8 @@ async function run(): Promise<void> {
   }
 
   const labelExists = hasLabel(labelName, parsedEvent);
-  core.debug(`Has label: ${labelExists} ${labelName}`);
+  core.debug(`Was label (name="${labelName}") found in list of labels? ${labelExists}`);
 
-  const botUsername = core.getInput('bot-username') || '';
   const review = await findReviewByUserName(octokit, owner, repo, parsedEvent.pull_request.number, botUsername);
 
   const intent = determineIntent(labelExists, review);

@@ -22,6 +22,8 @@ export async function getReviews(
       pull_number: pullRequest,
     });
 
+    core.debug(`returned lists of reviews from github ${response.data}`)
+
     return response.data;
 
   } catch (err: any) {
@@ -36,6 +38,8 @@ function findReviewByUser(reviews: Review[], username: string): Review | undefin
   const review = reviews.find(
     (review: Review) => review.user?.login === username
   );
+
+  core.debug(`found review ${review}`);
 
   return review;
 }

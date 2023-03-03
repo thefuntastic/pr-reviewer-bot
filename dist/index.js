@@ -232,6 +232,7 @@ const { owner, repo } = github.context.repo;
 const token = core.getInput('github-token') || core.getInput('githubToken');
 const octokit = token && github.getOctokit(token);
 const labelName = core.getInput('label-name');
+const botUsername = core.getInput('bot-username');
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         if (!octokit) {
@@ -240,6 +241,10 @@ function run() {
         }
         if (!GITHUB_EVENT_PATH) {
             core.debug('No GITHUB_EVENT_PATH environment vaiable set');
+            return;
+        }
+        if (!botUsername) {
+            core.debug('No input defining bot-username found');
             return;
         }
         let parsedEvent;
@@ -265,8 +270,7 @@ function run() {
             core.debug(`PR #${prNumber} in ${repoOwner}/${repoName} has been unlabeled with "${triggeredLabel}".`);
         }
         const labelExists = (0, checkLabelExists_1.hasLabel)(labelName, parsedEvent);
-        core.debug(`Has label: ${labelExists} ${labelName}`);
-        const botUsername = core.getInput('bot-username') || '';
+        core.debug(`Was label (name="${labelName}") found in list of labels? ${labelExists}`);
         const review = yield (0, reviews_1.findReviewByUserName)(octokit, owner, repo, parsedEvent.pull_request.number, botUsername);
         const intent = (0, determineIntent_1.determineIntent)(labelExists, review);
         switch (intent) {
@@ -363,6 +367,7 @@ function getReviews(octokit, owner, repo, pullRequest) {
                 repo,
                 pull_number: pullRequest,
             });
+            core.debug(`returned lists of reviews from github ${response.data}`);
             return response.data;
         }
         catch (err) {
@@ -374,6 +379,7 @@ function getReviews(octokit, owner, repo, pullRequest) {
 exports.getReviews = getReviews;
 function findReviewByUser(reviews, username) {
     const review = reviews.find((review) => { var _a; return ((_a = review.user) === null || _a === void 0 ? void 0 : _a.login) === username; });
+    core.debug(`found review ${review}`);
     return review;
 }
 function findReviewByUserName(octokit, owner, repo, pullNumber, username) {
