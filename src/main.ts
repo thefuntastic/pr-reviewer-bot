@@ -22,7 +22,7 @@ async function run(): Promise<void> {
   let parsedEvent: GithubLabelEvent;
 
   try {
-    parsedEvent = parseGithubLabelEvent(GITHUB_EVENT);
+    parsedEvent = <GithubLabelEvent>GITHUB_EVENT;
   } catch (err: any) {
     core.error(`Could not parse GITHUB_EVENT ${err} ${GITHUB_EVENT}`);
     core.setFailed(err);
