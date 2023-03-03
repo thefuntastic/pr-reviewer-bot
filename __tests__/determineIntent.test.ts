@@ -1,14 +1,14 @@
-import {determineIntent} from '../src/determineIntent';
-import {Review} from '../src/reviews';
-import {Intent} from '../src/types/intent';
+import { determineIntent } from '../src/determineIntent';
+import { Review } from '../src/reviews';
+import { Intent } from '../src/types/intent';
 
-//APPROVE, REQUEST_CHANGES, COMMENT, PENDING
+//APPROVED, REQUEST_CHANGES, COMMENT, PENDING
 
 test('Approve when labelled and no review exists', () => {
   const input: Review = {
     id: 1234,
     user: null,
-    state: 'APPROVE',
+    state: 'APPROVED',
   };
 
   expect(determineIntent(true, undefined)).toEqual(Intent.Approve);
@@ -18,7 +18,7 @@ test('Do nothing when labelled an approval review exists', () => {
   const input: Review = {
     id: 1234,
     user: null,
-    state: 'APPROVE',
+    state: 'APPROVED',
   };
 
   expect(determineIntent(true, input)).toEqual(Intent.DoNothing);
@@ -28,7 +28,7 @@ test(`Dismiss approval when label is removed`, () => {
   const input: Review = {
     id: 1234,
     user: null,
-    state: 'APPROVE',
+    state: 'APPROVED',
   };
 
   expect(determineIntent(false, input)).toEqual(Intent.Dismiss);

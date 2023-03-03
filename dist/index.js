@@ -99,7 +99,7 @@ function determineIntent(hasLabel, review) {
     if (hasLabel && !review) {
         return intent_1.Intent.Approve;
     }
-    else if (!hasLabel && (review === null || review === void 0 ? void 0 : review.state) === 'APPROVE') {
+    else if (!hasLabel && (review === null || review === void 0 ? void 0 : review.state) === 'APPROVED') {
         return intent_1.Intent.Dismiss;
     }
     return intent_1.Intent.DoNothing;

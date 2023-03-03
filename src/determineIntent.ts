@@ -1,5 +1,5 @@
-import {Review} from './reviews';
-import {Intent} from './types/intent';
+import { Review } from './reviews';
+import { Intent } from './types/intent';
 
 export function determineIntent(
   hasLabel: boolean,
@@ -7,7 +7,7 @@ export function determineIntent(
 ): Intent {
   if (hasLabel && !review) {
     return Intent.Approve;
-  } else if (!hasLabel && review?.state === 'APPROVE') {
+  } else if (!hasLabel && review?.state === 'APPROVED') {
     return Intent.Dismiss;
   }
   return Intent.DoNothing;
