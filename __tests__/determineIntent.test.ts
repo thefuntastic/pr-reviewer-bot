@@ -1,6 +1,6 @@
-import { determineIntent } from '../src/determineIntent';
-import { Review } from '../src/reviews';
-import { Intent } from '../src/types/intent';
+import {determineIntent} from '../src/determineIntent';
+import {Review} from '../src/reviews';
+import {Intent} from '../src/types/intent';
 
 //APPROVED, REQUEST_CHANGES, COMMENT, PENDING
 

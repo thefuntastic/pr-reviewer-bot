@@ -1,5 +1,5 @@
-import { Review } from './reviews';
-import { Intent } from './types/intent';
+import {Review} from './reviews';
+import {Intent} from './types/intent';
 
 export function determineIntent(
   hasLabel: boolean,

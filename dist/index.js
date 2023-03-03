@@ -152,18 +152,19 @@ const core = __importStar(__webpack_require__(2186));
 function dismissPR({ octokit, owner, repo, pullRequest, reviewId, }) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            core.debug('calling create review');
-            core.debug(owner);
-            core.debug(repo);
-            core.debug(pullRequest.toString());
-            core.debug(reviewId.toString());
-            yield octokit.rest.pulls.dismissReview({
+            yield octokit.rest.pulls.deletePendingReview({
                 owner,
                 repo,
                 pull_number: pullRequest,
                 review_id: reviewId,
-                message: 'Removing review as label was removed',
             });
+            // await octokit.rest.pulls.dismissReview({
+            //   owner,
+            //   repo,
+            //   pull_number: pullRequest,
+            //   review_id: reviewId,
+            //   message: 'Removing review as label was removed',
+            // });
         }
         catch (err) {
             core.error(`Something went wrong when dismissing the review: ${err}`);
