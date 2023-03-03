@@ -32,7 +32,7 @@ async function run(): Promise<void> {
 
   try {
     const eventData = await fs.readFile(GITHUB_EVENT_PATH, 'utf-8');
-    core.debug(eventData);
+    //core.debug(eventData);
     parsedEvent = parseGithubLabelEvent(eventData);
   } catch (err: any) {
     core.error(`Could not parse GITHUB_EVENT ${err} ${GITHUB_EVENT_PATH}`);
@@ -67,6 +67,9 @@ async function run(): Promise<void> {
   switch (intent) {
     case Intent.Approve:
       try {
+        core.debug(
+          `PR #${prNumber} in ${repoOwner}/${repoName}: approving review by "${botUsername}".`
+        );
         await approvePR({
           octokit,
           owner,
@@ -79,7 +82,9 @@ async function run(): Promise<void> {
       }
       break;
     case Intent.Dismiss:
-      core.debug('should be removing PR request');
+      core.debug(
+        `PR #${prNumber} in ${repoOwner}/${repoName}: dismissing review by "${botUsername}".`
+      );
       try {
         if (!review) {
           break;
@@ -98,6 +103,9 @@ async function run(): Promise<void> {
       }
       break;
     case Intent.DoNothing:
+      core.debug(
+        `PR #${prNumber} in ${repoOwner}/${repoName}: nothing to do here!.`
+      );
     default:
       break;
   }

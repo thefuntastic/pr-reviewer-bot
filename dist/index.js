@@ -245,7 +245,7 @@ function run() {
         let parsedEvent;
         try {
             const eventData = yield promises_1.default.readFile(GITHUB_EVENT_PATH, 'utf-8');
-            core.debug(eventData);
+            //core.debug(eventData);
             parsedEvent = (0, githubEvent_1.parseGithubLabelEvent)(eventData);
         }
         catch (err) {
@@ -272,6 +272,7 @@ function run() {
         switch (intent) {
             case intent_1.Intent.Approve:
                 try {
+                    core.debug(`PR #${prNumber} in ${repoOwner}/${repoName}: approving review by "${botUsername}".`);
                     yield (0, approvePR_1.approvePR)({
                         octokit,
                         owner,
@@ -285,7 +286,7 @@ function run() {
                 }
                 break;
             case intent_1.Intent.Dismiss:
-                core.debug('should be removing PR request');
+                core.debug(`PR #${prNumber} in ${repoOwner}/${repoName}: dismissing review by "${botUsername}".`);
                 try {
                     if (!review) {
                         break;
@@ -303,6 +304,7 @@ function run() {
                 }
                 break;
             case intent_1.Intent.DoNothing:
+                core.debug(`PR #${prNumber} in ${repoOwner}/${repoName}: nothing to do here!.`);
             default:
                 break;
         }
