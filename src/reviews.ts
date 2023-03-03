@@ -22,7 +22,7 @@ export async function getReviews(
       pull_number: pullRequest,
     });
 
-    core.debug(`returned lists of reviews from github ${response.data}`)
+    core.debug(`returned lists of reviews from github ${JSON.stringify(response.data)}`)
 
     return response.data;
 
@@ -39,7 +39,7 @@ function findReviewByUser(reviews: Review[], username: string): Review | undefin
     (review: Review) => review.user?.login === username
   );
 
-  core.debug(`found review ${review}`);
+  core.debug(`found review ${JSON.stringify(review)}`);
 
   return review;
 }

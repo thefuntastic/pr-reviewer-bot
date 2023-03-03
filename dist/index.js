@@ -367,7 +367,7 @@ function getReviews(octokit, owner, repo, pullRequest) {
                 repo,
                 pull_number: pullRequest,
             });
-            core.debug(`returned lists of reviews from github ${response.data}`);
+            core.debug(`returned lists of reviews from github ${JSON.stringify(response.data)}`);
             return response.data;
         }
         catch (err) {
@@ -379,7 +379,7 @@ function getReviews(octokit, owner, repo, pullRequest) {
 exports.getReviews = getReviews;
 function findReviewByUser(reviews, username) {
     const review = reviews.find((review) => { var _a; return ((_a = review.user) === null || _a === void 0 ? void 0 : _a.login) === username; });
-    core.debug(`found review ${review}`);
+    core.debug(`found review ${JSON.stringify(review)}`);
     return review;
 }
 function findReviewByUserName(octokit, owner, repo, pullNumber, username) {
