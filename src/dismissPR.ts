@@ -19,19 +19,13 @@ export async function dismissPR({
   reviewId,
 }: Params) {
   try {
-    await octokit.rest.pulls.deletePendingReview({
+    await octokit.rest.pulls.dismissReview({
       owner,
       repo,
       pull_number: pullRequest,
       review_id: reviewId,
+      message: 'Removing review as label was removed',
     });
-    // await octokit.rest.pulls.dismissReview({
-    //   owner,
-    //   repo,
-    //   pull_number: pullRequest,
-    //   review_id: reviewId,
-    //   message: 'Removing review as label was removed',
-    // });
   } catch (err: any) {
     core.error(`Something went wrong when dismissing the review: ${err}`);
     throw err;
