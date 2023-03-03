@@ -300,7 +300,7 @@ function run() {
                         owner,
                         repo,
                         pullRequest: parsedEvent.pull_request.number,
-                        reviewId: review.id
+                        reviewId: review.id,
                     });
                 }
                 catch (err) {
@@ -357,7 +357,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.findReviewByUserName = exports.getReviews = void 0;
+exports.findReviewByUserName = exports.findReviewByUser = exports.getReviews = void 0;
 const core = __importStar(__webpack_require__(2186));
 function getReviews(octokit, owner, repo, pullRequest) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -378,10 +378,15 @@ function getReviews(octokit, owner, repo, pullRequest) {
 }
 exports.getReviews = getReviews;
 function findReviewByUser(reviews, username) {
-    const review = reviews.find((review) => { var _a; return ((_a = review.user) === null || _a === void 0 ? void 0 : _a.login) === username; });
+    //Note, api returns reviews in chronological order
+    //Reverse to find the most up to date review
+    const review = reviews
+        .reverse()
+        .find((review) => { var _a; return ((_a = review.user) === null || _a === void 0 ? void 0 : _a.login) === username; });
     core.debug(`found review ${JSON.stringify(review)}`);
     return review;
 }
+exports.findReviewByUser = findReviewByUser;
 function findReviewByUserName(octokit, owner, repo, pullNumber, username) {
     return __awaiter(this, void 0, void 0, function* () {
         const reviews = yield getReviews(octokit, owner, repo, pullNumber);

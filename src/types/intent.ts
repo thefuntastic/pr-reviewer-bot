@@ -1,5 +1,5 @@
 export enum Intent {
-    Approve,
-    Dismiss,
-    DoNothing,
+  Approve,
+  Dismiss,
+  DoNothing,
 }

@@ -2,21 +2,20 @@ import fs from 'fs/promises';
 import * as github from '@actions/github';
 import * as core from '@actions/core';
 
-import { approvePR } from './approvePR';
-import { hasLabel } from './checkLabelExists';
-import { GithubLabelEvent, parseGithubLabelEvent } from './types/githubEvent';
-import { findReviewByUserName } from './reviews';
-import { dismissPR } from './dismissPR';
-import { determineIntent } from './determineIntent';
-import { Intent } from './types/intent';
+import {approvePR} from './approvePR';
+import {hasLabel} from './checkLabelExists';
+import {GithubLabelEvent, parseGithubLabelEvent} from './types/githubEvent';
+import {findReviewByUserName} from './reviews';
+import {dismissPR} from './dismissPR';
+import {determineIntent} from './determineIntent';
+import {Intent} from './types/intent';
 
-const { GITHUB_EVENT_PATH } = process.env;
-const { owner, repo } = github.context.repo;
+const {GITHUB_EVENT_PATH} = process.env;
+const {owner, repo} = github.context.repo;
 const token = core.getInput('github-token') || core.getInput('githubToken');
 const octokit = token && github.getOctokit(token);
 const labelName = core.getInput('label-name');
 const botUsername = core.getInput('bot-username');
-
 
 async function run(): Promise<void> {
   if (!octokit) {
@@ -63,9 +62,17 @@ async function run(): Promise<void> {
   }
 
   const labelExists = hasLabel(labelName, parsedEvent);
-  core.debug(`Was label (name="${labelName}") found in list of labels? ${labelExists}`);
+  core.debug(
+    `Was label (name="${labelName}") found in list of labels? ${labelExists}`
+  );
 
-  const review = await findReviewByUserName(octokit, owner, repo, parsedEvent.pull_request.number, botUsername);
+  const review = await findReviewByUserName(
+    octokit,
+    owner,
+    repo,
+    parsedEvent.pull_request.number,
+    botUsername
+  );
 
   const intent = determineIntent(labelExists, review);
 
@@ -100,10 +107,9 @@ async function run(): Promise<void> {
           owner,
           repo,
           pullRequest: parsedEvent.pull_request.number,
-          reviewId: review.id
-        })
-      }
-      catch (err: any) {
+          reviewId: review.id,
+        });
+      } catch (err: any) {
         core.setFailed(`Something went wrong dismissing the review: ${err}`);
       }
       break;
