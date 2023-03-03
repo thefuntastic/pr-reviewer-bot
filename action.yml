@@ -10,7 +10,7 @@ inputs:
     default: ${{ github.token }}
   label-name:
     description: Label that will trigger auto review (reviews will be removed if the label isn't present)
-  botNick:
+  bot-username:
     description: Github nick name for the bot account, used to remove previous comments
 runs:
   using: node16

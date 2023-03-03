@@ -59,8 +59,8 @@ async function run(): Promise<void> {
   const labelExists = hasLabel(labelName, parsedEvent);
   core.debug(`Has label: ${labelExists} ${labelName}`);
 
-  const botNick = core.getInput('botNick') || '';
-  const review = await findReviewByUserName(octokit, owner, repo, parsedEvent.pull_request.number, botNick);
+  const botUsername = core.getInput('bot-username') || '';
+  const review = await findReviewByUserName(octokit, owner, repo, parsedEvent.pull_request.number, botUsername);
 
   const intent = determineIntent(labelExists, review);
 

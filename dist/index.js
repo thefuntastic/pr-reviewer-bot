@@ -266,8 +266,8 @@ function run() {
         }
         const labelExists = (0, checkLabelExists_1.hasLabel)(labelName, parsedEvent);
         core.debug(`Has label: ${labelExists} ${labelName}`);
-        const botNick = core.getInput('botNick') || '';
-        const review = yield (0, reviews_1.findReviewByUserName)(octokit, owner, repo, parsedEvent.pull_request.number, botNick);
+        const botUsername = core.getInput('bot-username') || '';
+        const review = yield (0, reviews_1.findReviewByUserName)(octokit, owner, repo, parsedEvent.pull_request.number, botUsername);
         const intent = (0, determineIntent_1.determineIntent)(labelExists, review);
         switch (intent) {
             case intent_1.Intent.Approve:
