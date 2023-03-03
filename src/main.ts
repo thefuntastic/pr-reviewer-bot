@@ -5,6 +5,10 @@ import * as core from '@actions/core';
 import { approvePR } from './approvePR';
 import { hasLabel } from './checkLabelExists';
 import { GithubLabelEvent, parseGithubLabelEvent } from './types/githubEvent';
+import { findReviewByUserName } from './reviews';
+import { dismissPR } from './dismissPR';
+import { determineIntent } from './determineIntent';
+import { Intent } from './types/intent';
 
 const { GITHUB_EVENT_PATH } = process.env;
 const { owner, repo } = github.context.repo;
@@ -42,11 +46,11 @@ async function run(): Promise<void> {
   const repoName = parsedEvent.repository.name;
   const repoOwner = parsedEvent.repository.owner.login;
 
-  if (parsedEvent.action === "labeled") {
+  if (parsedEvent.action === 'labeled') {
     core.debug(
       `PR #${prNumber} in ${repoOwner}/${repoName} has been labeled with "${triggeredLabel}".`
     );
-  } else if (parsedEvent.action === "unlabeled") {
+  } else if (parsedEvent.action === 'unlabeled') {
     core.debug(
       `PR #${prNumber} in ${repoOwner}/${repoName} has been unlabeled with "${triggeredLabel}".`
     );
@@ -55,35 +59,48 @@ async function run(): Promise<void> {
   const labelExists = hasLabel(labelName, parsedEvent);
   core.debug(`Has label: ${labelExists} ${labelName}`);
 
-  // const botNick = core.getInput('botNick') || null;
+  const botNick = core.getInput('botNick') || '';
+  const review = await findReviewByUserName(octokit, owner, repo, parsedEvent.pull_request.number, botNick);
 
-  if (labelExists) {
-    try {
-      await approvePR({
-        octokit,
-        owner,
-        repo,
-        // @ts-ignore
-        pullRequest: parsedEvent.pull_request.number,
-        commitId: parsedEvent.pull_request.head.sha,
-      });
-    } catch (err: any) {
-      core.setFailed(`Something went wrong when posting the review: ${err}`);
-    }
-  } else {
-    core.debug('should be removing PR request');
+  const intent = determineIntent(labelExists, review);
+
+  switch (intent) {
+    case Intent.Approve:
+      try {
+        await approvePR({
+          octokit,
+          owner,
+          repo,
+          pullRequest: parsedEvent.pull_request.number,
+          commitId: parsedEvent.pull_request.head.sha,
+        });
+      } catch (err: any) {
+        core.setFailed(`Something went wrong when posting the review: ${err}`);
+      }
+      break;
+    case Intent.Dismiss:
+      core.debug('should be removing PR request');
+      try {
+        if (!review) {
+          break;
+        }
+
+        await dismissPR({
+          octokit,
+          owner,
+          repo,
+          pullRequest: parsedEvent.pull_request.number,
+          reviewId: review.id
+        })
+      }
+      catch (err: any) {
+        core.setFailed(`Something went wrong dismissing the review: ${err}`);
+      }
+      break;
+    case Intent.DoNothing:
+    default:
+      break;
   }
-
-
-  // // If we have a git diff, then it means that some linter/formatter has changed some files, so
-  // // we should fail the build
-  // if (!!gitDiff) {
-  //   core.setFailed(
-  //     new Error(
-  //       'There were some changed files, please update your PR with the code review suggestions'
-  //     )
-  //   );
-  // }
 }
 
 run();

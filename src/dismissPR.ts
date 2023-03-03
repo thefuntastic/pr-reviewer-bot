@@ -30,7 +30,7 @@ export async function dismissPR({
       repo,
       pull_number: pullRequest,
       review_id: reviewId,
-      message: 'Removing review as label was removed'
+      message: 'Removing review as label was removed',
     });
   } catch (err: any) {
     core.error(`Something went wrong when dismissing the review: ${err}`);

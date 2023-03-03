@@ -77,10 +77,101 @@ exports.approvePR = approvePR;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.hasLabel = void 0;
 function hasLabel(labelName, event) {
-    const labelFound = event.pull_request.labels.map((label) => label.name).includes(labelName);
+    const labelFound = event.pull_request.labels
+        .map(label => label.name)
+        .includes(labelName);
     return labelFound;
 }
 exports.hasLabel = hasLabel;
+
+
+/***/ }),
+
+/***/ 8433:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.determineIntent = void 0;
+const intent_1 = __webpack_require__(7986);
+function determineIntent(hasLabel, review) {
+    if (hasLabel && !review) {
+        return intent_1.Intent.Approve;
+    }
+    else if (!hasLabel && (review === null || review === void 0 ? void 0 : review.state) === 'APPROVE') {
+        return intent_1.Intent.Dismiss;
+    }
+    return intent_1.Intent.DoNothing;
+}
+exports.determineIntent = determineIntent;
+
+
+/***/ }),
+
+/***/ 3784:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.dismissPR = void 0;
+const core = __importStar(__webpack_require__(2186));
+function dismissPR({ octokit, owner, repo, pullRequest, reviewId, }) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            core.debug('calling create review');
+            core.debug(owner);
+            core.debug(repo);
+            core.debug(pullRequest.toString());
+            core.debug(reviewId.toString());
+            yield octokit.rest.pulls.dismissReview({
+                owner,
+                repo,
+                pull_number: pullRequest,
+                review_id: reviewId,
+                message: 'Removing review as label was removed',
+            });
+        }
+        catch (err) {
+            core.error(`Something went wrong when dismissing the review: ${err}`);
+            throw err;
+        }
+    });
+}
+exports.dismissPR = dismissPR;
 
 
 /***/ }),
@@ -132,6 +223,10 @@ const core = __importStar(__webpack_require__(2186));
 const approvePR_1 = __webpack_require__(144);
 const checkLabelExists_1 = __webpack_require__(6995);
 const githubEvent_1 = __webpack_require__(1519);
+const reviews_1 = __webpack_require__(6119);
+const dismissPR_1 = __webpack_require__(3784);
+const determineIntent_1 = __webpack_require__(8433);
+const intent_1 = __webpack_require__(7986);
 const { GITHUB_EVENT_PATH } = process.env;
 const { owner, repo } = github.context.repo;
 const token = core.getInput('github-token') || core.getInput('githubToken');
@@ -163,45 +258,130 @@ function run() {
         const prNumber = parsedEvent.pull_request.number;
         const repoName = parsedEvent.repository.name;
         const repoOwner = parsedEvent.repository.owner.login;
-        if (parsedEvent.action === "labeled") {
+        if (parsedEvent.action === 'labeled') {
             core.debug(`PR #${prNumber} in ${repoOwner}/${repoName} has been labeled with "${triggeredLabel}".`);
         }
-        else if (parsedEvent.action === "unlabeled") {
+        else if (parsedEvent.action === 'unlabeled') {
             core.debug(`PR #${prNumber} in ${repoOwner}/${repoName} has been unlabeled with "${triggeredLabel}".`);
         }
         const labelExists = (0, checkLabelExists_1.hasLabel)(labelName, parsedEvent);
         core.debug(`Has label: ${labelExists} ${labelName}`);
-        // const botNick = core.getInput('botNick') || null;
-        if (labelExists) {
-            try {
-                yield (0, approvePR_1.approvePR)({
-                    octokit,
-                    owner,
-                    repo,
-                    // @ts-ignore
-                    pullRequest: parsedEvent.pull_request.number,
-                    commitId: parsedEvent.pull_request.head.sha,
-                });
-            }
-            catch (err) {
-                core.setFailed(`Something went wrong when posting the review: ${err}`);
-            }
+        const botNick = core.getInput('botNick') || '';
+        const review = yield (0, reviews_1.findReviewByUserName)(octokit, owner, repo, parsedEvent.pull_request.number, botNick);
+        const intent = (0, determineIntent_1.determineIntent)(labelExists, review);
+        switch (intent) {
+            case intent_1.Intent.Approve:
+                try {
+                    yield (0, approvePR_1.approvePR)({
+                        octokit,
+                        owner,
+                        repo,
+                        pullRequest: parsedEvent.pull_request.number,
+                        commitId: parsedEvent.pull_request.head.sha,
+                    });
+                }
+                catch (err) {
+                    core.setFailed(`Something went wrong when posting the review: ${err}`);
+                }
+                break;
+            case intent_1.Intent.Dismiss:
+                core.debug('should be removing PR request');
+                try {
+                    if (!review) {
+                        break;
+                    }
+                    yield (0, dismissPR_1.dismissPR)({
+                        octokit,
+                        owner,
+                        repo,
+                        pullRequest: parsedEvent.pull_request.number,
+                        reviewId: review.id
+                    });
+                }
+                catch (err) {
+                    core.setFailed(`Something went wrong dismissing the review: ${err}`);
+                }
+                break;
+            case intent_1.Intent.DoNothing:
+            default:
+                break;
         }
-        else {
-            core.debug('should be removing PR request');
-        }
-        // // If we have a git diff, then it means that some linter/formatter has changed some files, so
-        // // we should fail the build
-        // if (!!gitDiff) {
-        //   core.setFailed(
-        //     new Error(
-        //       'There were some changed files, please update your PR with the code review suggestions'
-        //     )
-        //   );
-        // }
     });
 }
 run();
+
+
+/***/ }),
+
+/***/ 6119:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.findReviewByUserName = exports.getReviews = void 0;
+const core = __importStar(__webpack_require__(2186));
+function getReviews(octokit, owner, repo, pullRequest) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const response = yield octokit.rest.pulls.listReviews({
+                owner,
+                repo,
+                pull_number: pullRequest,
+            });
+            return response.data;
+        }
+        catch (err) {
+            core.error(`Something went wrong retrieving reviews: ${err}`);
+            throw err;
+        }
+    });
+}
+exports.getReviews = getReviews;
+function findReviewByUser(reviews, username) {
+    const review = reviews.find((review) => { var _a; return ((_a = review.user) === null || _a === void 0 ? void 0 : _a.login) === username; });
+    return review;
+}
+function findReviewByUserName(octokit, owner, repo, pullNumber, username) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const reviews = yield getReviews(octokit, owner, repo, pullNumber);
+        const review = findReviewByUser(reviews, username);
+        return review;
+    });
+}
+exports.findReviewByUserName = findReviewByUserName;
 
 
 /***/ }),
@@ -243,6 +423,23 @@ function isGithubLabelEvent(event) {
         typeof labelEvent.pull_request.body === 'string' &&
         Array.isArray(labelEvent.pull_request.labels));
 }
+
+
+/***/ }),
+
+/***/ 7986:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Intent = void 0;
+var Intent;
+(function (Intent) {
+    Intent[Intent["Approve"] = 0] = "Approve";
+    Intent[Intent["Dismiss"] = 1] = "Dismiss";
+    Intent[Intent["DoNothing"] = 2] = "DoNothing";
+})(Intent = exports.Intent || (exports.Intent = {}));
 
 
 /***/ }),

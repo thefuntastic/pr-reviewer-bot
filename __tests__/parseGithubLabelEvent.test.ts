@@ -1,5 +1,4 @@
-import { parseGithubLabelEvent } from '../src/types/githubEvent';
-
+import {parseGithubLabelEvent} from '../src/types/githubEvent';
 
 const input = `{
     "action": "labeled",
@@ -543,9 +542,8 @@ const inputMinified = `{
   }
 }`;
 
-
 test('Postive case', () => {
   const data = parseGithubLabelEvent(inputMinified);
 
   expect(data.action).toEqual('labeled');
-})
+});
