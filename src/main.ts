@@ -1,3 +1,4 @@
+import fs from 'fs/promises';
 import * as github from '@actions/github';
 import * as core from '@actions/core';
 
@@ -10,8 +11,7 @@ const { owner, repo } = github.context.repo;
 const token = core.getInput('github-token') || core.getInput('githubToken');
 const octokit = token && github.getOctokit(token);
 const labelName = core.getInput('label-name');
-// @ts-ignore
-const GITHUB_EVENT = require(GITHUB_EVENT_PATH);
+
 
 async function run(): Promise<void> {
   if (!octokit) {
@@ -19,12 +19,18 @@ async function run(): Promise<void> {
     return;
   }
 
+  if (!GITHUB_EVENT_PATH) {
+    core.debug('No GITHUB_EVENT_PATH environment vaiable set');
+    return;
+  }
+
   let parsedEvent: GithubLabelEvent;
 
   try {
-    parsedEvent = <GithubLabelEvent>GITHUB_EVENT;
+    const eventData = await fs.readFile(GITHUB_EVENT_PATH, 'utf-8');
+    parsedEvent = parseGithubLabelEvent(eventData);
   } catch (err: any) {
-    core.error(`Could not parse GITHUB_EVENT ${err} ${GITHUB_EVENT}`);
+    core.error(`Could not parse GITHUB_EVENT ${err} ${GITHUB_EVENT_PATH}`);
     core.setFailed(err);
     return;
   }
