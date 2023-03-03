@@ -1,15 +1,15 @@
 name: action-git-diff-suggestions
-description: This GitHub Action will take the current git changes and apply them as GitHub code review suggestions
-author: Sentry
+description: Automatically adds a review in the presence of a label
+author: EmbarkStudios
 branding:
   icon: book-open
   color: purple
 inputs:
   github-token:
-    description: github token
+    description: Github token for the account performing auto reviews
     default: ${{ github.token }}
-  message:
-    description: The message to prepend the review suggestion
+  label-name:
+    description: Label that will trigger auto review (reviews will be removed if the label isn't present)
   botNick:
     description: Github nick name for the bot account, used to remove previous comments
 runs:
