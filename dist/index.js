@@ -150,6 +150,7 @@ function run() {
         let parsedEvent;
         try {
             const eventData = yield promises_1.default.readFile(GITHUB_EVENT_PATH, 'utf-8');
+            core.debug(eventData);
             parsedEvent = (0, githubEvent_1.parseGithubLabelEvent)(eventData);
         }
         catch (err) {
@@ -157,18 +158,19 @@ function run() {
             core.setFailed(err);
             return;
         }
-        const labelName = parsedEvent.label.name;
+        // Note, when labels are batch updated, only the first label is provided. Therefore this can't be relied on, and we must poll available labels instead.
+        const triggeredLabel = parsedEvent.label.name;
         const prNumber = parsedEvent.pull_request.number;
         const repoName = parsedEvent.repository.name;
         const repoOwner = parsedEvent.repository.owner.login;
         if (parsedEvent.action === "labeled") {
-            core.debug(`PR #${prNumber} in ${repoOwner}/${repoName} has been labeled with "${labelName}".`);
+            core.debug(`PR #${prNumber} in ${repoOwner}/${repoName} has been labeled with "${triggeredLabel}".`);
         }
         else if (parsedEvent.action === "unlabeled") {
-            core.debug(`PR #${prNumber} in ${repoOwner}/${repoName} has been unlabeled with "${labelName}".`);
+            core.debug(`PR #${prNumber} in ${repoOwner}/${repoName} has been unlabeled with "${triggeredLabel}".`);
         }
         const labelExists = (0, checkLabelExists_1.hasLabel)(labelName, parsedEvent);
-        core.debug(`Has lablel: ${labelExists} ${labelName}`);
+        core.debug(`Has label: ${labelExists} ${labelName}`);
         // const botNick = core.getInput('botNick') || null;
         if (labelExists) {
             try {
